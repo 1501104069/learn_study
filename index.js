@@ -1,52 +1,95 @@
-// var link = "sdf.html?a=34&sd=sdfs&ds=8234&dfs=sdfsdf&a=jjj &a=";
-const parseFn = (str, type = "last") => {
-  var paramsString = str.split("?")[1];
-  var paramItem = paramsString.split("&");
-  var obj = {};
-  for (var i = 0; i < paramItem.length; i++) {
-    var [label, value] = paramItem[i].split("=");
-    switch (type) {
-      case "first":
-        obj[label] = obj.hasOwnProperty(label) ? obj[label] : value;
-        break;
-      case "arr":
-        obj[label] = obj.hasOwnProperty(label)
-          ? obj[label] + "," + value
-          : value;
-        break;
-      default:
-        obj[label] = value;
+const { arrclap } = require("../arrClap/arr_clap");
+
+function classNames() {
+  let len = arguments.length;
+  let classes = [];
+  for (let i = 0; i < len; i++) {
+    const argItem = arguments[i];
+    if (!argItem) continue;
+
+    const argType = typeof argItem;
+    if (argType === "string" || argType === "number") {
+      classes.push(argItem);
+    } else if (Array.isArray(argItem)) {
+      if (argItem.length) {
+        let res = classNames(...arrclap(argItem));
+        if (res) {
+          classes.push(res);
+        }
+      }
+    } else if (Object.prototype.toString.call(argItem) === "[object Object]") {
+      for (const key in argItem) {
+        if (argItem[key]) {
+          classes.push(key);
+        }
+        // if (
+        //   Object.prototype.toString.call(argItem[key]) === "[object Function]"
+        // ) {
+        //   console.log(key, "key");
+        //   console.log(argItem[key]())
+        //   classes.push(argItem[key]() ? argItem[key]() : key);
+        // } else if (argItem[key]) {
+        //   classes.push(key);
+        // }
+      }
     }
   }
-  return obj;
+  return classes.join(" ");
 }
-// let a = parseFn(link, "arr");
-// console.log(a);
+// console.log( classNames('a', 0, null, undefined, true, false, 1, 'b') );
+// console.log(classNames(["bar", null, undefined, true, false, 1337]));
+// console.log(classNames([["bar", null, undefined, true, false, [], 1337]]));
+// console.log( classNames(classNames,{},{
+//   a: true,
+//   b: false,
+//   c: 0,
+//   d: null,
+//   e: undefined,
+//   f: 1,
+// },
+// 9,
+// "p") )
+// console.log(classNames({
+//   // falsy:
+//   null: null,
+//   emptyString: "",
+//   noNumber: NaN,
+//   zero: 0,
+//   negativeZero: -0,
+//   false: false,
+//   undefined: undefined,
 
-const stringifyFn = (param, key, encode) => {
-  if (param == null) return "";
-  var paramStr = "";
-  var t = typeof param;
-  if (t == "string" || t == "number" || t == "boolean") {
-    paramStr += "&" + key + "=" + (encode == null || encode ? encodeURIComponent(param) : param);
-  } else {
-    for (var i in param) {
-      var k = key == null ? i : key + (param instanceof Array ? "[" + i + "]" : "." + i);
-      paramStr += stringifyFn(param[i], k, encode);
-    }
+//   // truthy (literally anything else):
+//   nonEmptyString: "foobar",
+//   whitespace: " ",
+//   function: () => {}, //Object.prototype.toString,
+//   emptyObject: {},
+//   nonEmptyObject: { a: 1, b: 2 },
+//   emptyList: [],
+//   nonEmptyList: [1, 2, 3],
+//   greaterZero: 1,
+// }),9999)
+// console.log(
+//   classNames({
+//     toString: () => {
+//       return "classFromMethod";
+//     }, //function () { return 'classFromMethod'; }
+//   }),
+//   "123"
+// );
+
+function prefixCls() {
+  let res = "";
+  if (arguments.length) {
+    classNames(...arguments)
+      .split(" ")
+      .forEach((el) => {
+        res += arguments[0] === el ? `${el} ` : `${arguments[0]}-${el} `;
+      });
+    return res.trim();
   }
-  return paramStr;
+  return "";
 }
+console.log(prefixCls());
 
-// var obj = {
-//   name: "tom",
-//   class: { className: "class1" },
-//   classMates: [{ name: "lily" }],
-// };
-
-// console.log(stringifyFn(obj));
-// console.log(stringifyFn(obj, "stu"));
-module.export = {
-    parseFn,
-    stringifyFn
-}
+module.exports = { classNames, prefixCls };
